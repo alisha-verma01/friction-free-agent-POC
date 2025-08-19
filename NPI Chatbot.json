@@ -1,0 +1,946 @@
+{
+  "name": "NPI Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -640,
+        40
+      ],
+      "id": "22f499c2-39d0-42aa-80ae-0fd59ab93386",
+      "name": "When chat message received",
+      "webhookId": "e24a5146-113e-46dc-910d-535acf4249fa"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -60
+      ],
+      "id": "55135182-1612-4cae-a54f-57313354bcc1",
+      "name": "XML"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5628d059-996e-4cdf-8dd1-ad643c5bef82",
+              "name": "name",
+              "value": "={{ $json.ProfessionalSummary0006Response.svcResponse.professionalInformation.lastName }}, {{ $json.ProfessionalSummary0006Response.svcResponse.professionalInformation.firstName }}",
+              "type": "string"
+            },
+            {
+              "id": "133b0f50-9a5e-4555-8114-4d1b30ee08e1",
+              "name": "npi",
+              "value": "={{ $json.ProfessionalSummary0006Response.svcResponse.professionalInformation.npi.npi }}",
+              "type": "string"
+            },
+            {
+              "id": "aaa345e3-ec36-471a-8c1d-f063f748e732",
+              "name": "spec",
+              "value": "={{ $json.ProfessionalSummary0006Response.svcResponse.professionalInformation.specialty.specialtyFullDescription ?? $json.ProfessionalSummary0006Response.svcResponse.professionalInformation.specialty[0].specialtyFullDescription }}",
+              "type": "string"
+            },
+            {
+              "id": "be99f1d9-6f3d-40c9-ae80-eb54e8e4ad4d",
+              "name": "loc",
+              "value": "={{ $json.ProfessionalSummary0006Response.svcResponse.professionalInformation.address.externalDisplayAddress.addressLine1 }}, {{ $json.ProfessionalSummary0006Response.svcResponse.professionalInformation.address.postalAddress.city }}, {{ $json.ProfessionalSummary0006Response.svcResponse.professionalInformation.address.postalAddress.state }} {{ $json.ProfessionalSummary0006Response.svcResponse.professionalInformation.address.postalAddress.zip }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        -60
+      ],
+      "id": "aa46c362-d865-4aff-b3b0-b5dc28b70391",
+      "name": "Field Extract"
+    },
+    {
+      "parameters": {
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "npi",
+              "field2": "npi"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.compareDatasets",
+      "typeVersion": 2.3,
+      "position": [
+        680,
+        20
+      ],
+      "id": "2d0534cc-8b5f-49b1-9b4f-238c6a1482ea",
+      "name": "Compare Datasets"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Grab everything from the trigger\nconst input = $input.first().json;\nconst chatText = input.chatInput || input.message || \"\"; // your trigger’s text field\nconst session = input.sessionId || input.chatId || \"\"; // whichever ID your trigger provides\n\nif (!session) {\n throw new Error(\"No session ID in incoming data\");\n}\n\n// 2. Extract the 5‑digit code\nconst match = chatText.match(/\b(\\d{10})\b/);\nif (!match) {\n throw new Error(\"No 10‑digit code found\");\n}\n\n// 3. Emit a single item carrying all three values\nreturn [{\n sessionId: session,\n chatInput: chatText,\n code: match[1],\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -420,
+        40
+      ],
+      "id": "f50cde11-d9c9-48ea-b87d-0ee7031f1e8a",
+      "name": "NPI Extract"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "\nreturn items.slice(3);\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        140
+      ],
+      "id": "ab1eb8ae-d76f-44bd-b382-3ff97200355d",
+      "name": "Trim"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "14fe6673-078c-4b7e-865f-00c80d5c471b",
+              "name": "name",
+              "value": "={{ $json[0][0] }}",
+              "type": "string"
+            },
+            {
+              "id": "7cc15db8-6620-4220-97a1-7742990647f5",
+              "name": "npi",
+              "value": "={{ $json[0][1] }}",
+              "type": "string"
+            },
+            {
+              "id": "a95031cd-798f-4aa5-9007-a73e5a861b26",
+              "name": "spec",
+              "value": "={{ $json[0][2] }}",
+              "type": "string"
+            },
+            {
+              "id": "632ad0fe-ac82-4961-9d8c-ec421f878fe4",
+              "name": "loc",
+              "value": "={{ $json[0][3] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        140
+      ],
+      "id": "90b1926a-fb91-48a9-98a8-1df5b1c23170",
+      "name": "Reformat"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1353a0e8-9654-4f16-aeb3-866b93330157",
+              "name": "locationAccuracy",
+              "value": "=100%",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1780,
+        -60
+      ],
+      "id": "35ce9625-eb6f-4c60-93c1-e71efa4c62e3",
+      "name": "Same Loc"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b14a25c3-09f2-421b-a6f8-244807eca1bd",
+              "name": "intLoc",
+              "value": "={{ $('Compare Datasets').item.json.different.loc.inputA }}",
+              "type": "string"
+            },
+            {
+              "id": "3080e3d4-f39a-4fcf-9002-1abce0e580e9",
+              "name": "pubLoc",
+              "value": "={{ $('Compare Datasets').item.json.different.loc.inputB }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1340,
+        140
+      ],
+      "id": "f06c8975-a0f8-40ba-9b10-40fc754c1212",
+      "name": "Loc Extract"
+    },
+    {
+      "parameters": {
+        "jsCode": "function cosineSimilarity(str1, str2) {\n // Tokenize and normalize the strings\n const tokenize = str => str.toLowerCase().match(/\\w+/g) || [];\n\n const tokens1 = tokenize(str1);\n const tokens2 = tokenize(str2);\n\n // Create a set of all unique words\n const allTokens = Array.from(new Set([...tokens1, ...tokens2]));\n\n // Create frequency vectors\n const vector1 = allTokens.map(token => tokens1.filter(t => t === token).length);\n const vector2 = allTokens.map(token => tokens2.filter(t => t === token).length);\n\n // Compute dot product and magnitudes\n const dotProduct = vector1.reduce((sum, val, i) => sum + val * vector2[i], 0);\n const magnitude1 = Math.sqrt(vector1.reduce((sum, val) => sum + val * val, 0));\n const magnitude2 = Math.sqrt(vector2.reduce((sum, val) => sum + val * val, 0));\n\n // Avoid division by zero\n if (magnitude1 === 0 || magnitude2 === 0) return 0;\n\n return dotProduct / (magnitude1 * magnitude2);\n}\n\nconst str1 = $input.first().json.intLoc;\nconst str2 = $input.first().json.pubLoc;\n\nreturn [\n {\n json: {\n similarity: cosineSimilarity(str1, str2)\n }\n }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        140
+      ],
+      "id": "423f177c-b790-4ff2-900b-f8f8ca6a4b28",
+      "name": "Loc Cosine Similarity"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5356be5c-9169-41a9-800d-46196222dceb",
+              "name": "locationAccuracy",
+              "value": "={{ (parseFloat($json.similarity) * 100).toFixed(2)}}%",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1780,
+        140
+      ],
+      "id": "58adeafb-5e40-4656-ba42-08c9b4bd4bf4",
+      "name": "Loc Reformat"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dbcf8487-0e52-4053-9022-2b0020bb0367",
+              "leftValue": "={{ $('Similarity Checks').item.json.nameSame }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2000,
+        40
+      ],
+      "id": "0f68a7be-880c-4cd9-a8f1-2d98f39ac8aa",
+      "name": "Name Branch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dbcf8487-0e52-4053-9022-2b0020bb0367",
+              "leftValue": "={{ $json.locSame }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        40
+      ],
+      "id": "608a94b3-a107-42c1-9ce1-30389c7f7441",
+      "name": "Loc Branch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5dfd1254-0ff3-4807-830b-80af6dc1c6c6",
+              "name": "nameAccuracy",
+              "value": "100%",
+              "type": "string"
+            },
+            {
+              "id": "1353a0e8-9654-4f16-aeb3-866b93330157",
+              "name": "locationAccuracy",
+              "value": "={{ $json.locationAccuracy }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2660,
+        -60
+      ],
+      "id": "dfff9181-0dd6-4291-a3c9-9360d593ce64",
+      "name": "Same Name"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b14a25c3-09f2-421b-a6f8-244807eca1bd",
+              "name": "intName",
+              "value": "={{ $('Compare Datasets').item.json.different.name.inputA }}",
+              "type": "string"
+            },
+            {
+              "id": "3080e3d4-f39a-4fcf-9002-1abce0e580e9",
+              "name": "pubName",
+              "value": "={{ $('Compare Datasets').item.json.different.name.inputB }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2220,
+        140
+      ],
+      "id": "22bdd2be-930c-4dea-893c-418b9e05836d",
+      "name": "Name Extract"
+    },
+    {
+      "parameters": {
+        "jsCode": "function cosineSimilarity(str1, str2) {\n // Tokenize and normalize the strings\n const tokenize = str => str.toLowerCase().match(/\\w+/g) || [];\n\n const tokens1 = tokenize(str1);\n const tokens2 = tokenize(str2);\n\n // Create a set of all unique words\n const allTokens = Array.from(new Set([...tokens1, ...tokens2]));\n\n // Create frequency vectors\n const vector1 = allTokens.map(token => tokens1.filter(t => t === token).length);\n const vector2 = allTokens.map(token => tokens2.filter(t => t === token).length);\n\n // Compute dot product and magnitudes\n const dotProduct = vector1.reduce((sum, val, i) => sum + val * vector2[i], 0);\n const magnitude1 = Math.sqrt(vector1.reduce((sum, val) => sum + val * val, 0));\n const magnitude2 = Math.sqrt(vector2.reduce((sum, val) => sum + val * val, 0));\n\n // Avoid division by zero\n if (magnitude1 === 0 || magnitude2 === 0) return 0;\n\n return dotProduct / (magnitude1 * magnitude2);\n}\n\nconst str1 = $input.first().json.intName;\nconst str2 = $input.first().json.pubName;\n\nreturn [\n {\n json: {\n similarity: cosineSimilarity(str1, str2)\n }\n }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2440,
+        140
+      ],
+      "id": "5aea77d5-7796-4315-a896-3f4d6e706c01",
+      "name": "Name Cosine Similarity"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5356be5c-9169-41a9-800d-46196222dceb",
+              "name": "nameAccuracy",
+              "value": "={{ (parseFloat($json.similarity) * 100).toFixed(2)}}%",
+              "type": "string"
+            },
+            {
+              "id": "70d97557-310c-4385-a295-107ab4751f5b",
+              "name": "locationAccuracy",
+              "value": "={{ $('Name Branch').item.json.locationAccuracy }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2660,
+        140
+      ],
+      "id": "d4cff6a8-cdc1-4baf-93c4-5ddd1b7d71b3",
+      "name": "Name Reformat"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "47ff5f2d-4ce2-48bb-89c1-beae4f002e16",
+              "name": "Name",
+              "value": "={{ $('Field Extract').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "a179f720-04fc-4d8f-90e8-6fb40fe7302c",
+              "name": "NameAcc",
+              "value": "={{ $json.nameAccuracy }}",
+              "type": "string"
+            },
+            {
+              "id": "103807a1-0033-4fd7-80a9-40500bcd6da5",
+              "name": "NPI",
+              "value": "={{ $('Compare Datasets').item.json.keys.npi }}",
+              "type": "string"
+            },
+            {
+              "id": "eca4bb00-4e71-4fe9-b79f-a24ea2f6ee0d",
+              "name": "Spec",
+              "value": "={{ $('Compare Datasets').item.json.different.spec.inputA }}",
+              "type": "string"
+            },
+            {
+              "id": "8f8491cf-738c-445f-a081-9e6ec5d262ce",
+              "name": "Loc",
+              "value": "={{ $('Trim').item.json.loc }}",
+              "type": "string"
+            },
+            {
+              "id": "cabbe6e5-cb72-4f82-8859-f2a01eb4603f",
+              "name": "LocAcc",
+              "value": "={{ $('Name Branch').item.json.locationAccuracy }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2880,
+        40
+      ],
+      "id": "25b9d032-97c1-467b-b64c-5f4c416b5b4e",
+      "name": "Final Output"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Display the following message:\n\n**Provider Name**: {{ $json.Name }}\n- Accuracy: {{ $json.NameAcc }}\n\n**ID**: {{ $json.NPI }}\n\n**Specialty**: {{ $json.Spec }}\n\n**Location**: {{ $json.Loc }}\n- Accuracy: {{ $json.LocAcc }}\n\nSay nothing else",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        3100,
+        40
+      ],
+      "id": "a91c826b-041e-46db-aaae-1a026e54023a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "projectId": {
+          "__rl": true,
+          "value": "verdant-sprite-463513-f2",
+          "mode": "list",
+          "cachedResultName": "My First Project"
+        },
+        "modelName": "gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleVertex",
+      "typeVersion": 1,
+      "position": [
+        3180,
+        260
+      ],
+      "id": "e3f579c7-5f98-4d4f-a3b7-521be0f5046a",
+      "name": "Google Vertex Chat Model",
+      "credentials": {
+        "googleApi": {
+          "id": "1PXgnz1wMk46khIx",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Access the first item from the input data\nconst item = $('Compare Datasets').first().json;\n\n// Initialize nameAcc\nlet nameSame = 0;\nlet locSame = 0;\n\n// Check if \"name\" exists in the \"same\" category\nif (item.same && item.same.name) {\n nameSame = 1;\n}\n\nif (item.same && item.same.loc) {\n locSame = 1;\n}\n\n// Return in n8n format\nreturn [\n {\n json: {\n nameSame: nameSame,\n locSame: locSame\n }\n }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        40
+      ],
+      "id": "14378544-be66-402c-bb76-a91b664124e1",
+      "name": "Similarity Checks"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://gateway.optum.com/auth/oauth2/cached/token",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "client_credentials"
+            },
+            {
+              "name": "client_id",
+              "value": "YmlarjHv0XrGU33D6E20d57XrnmrIQxx"
+            },
+            {
+              "name": "client_secret",
+              "value": "secret"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -200,
+        -60
+      ],
+      "id": "ac3fcc81-105e-48d6-8868-8ff7f67b6951",
+      "name": "OAuth Token Gen"
+    },
+    {
+      "parameters": {
+        "url": "=https://clinicaltables.nlm.nih.gov/api/npi_idv/v3/search?terms={{ $json.code }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        20,
+        140
+      ],
+      "id": "07726344-2756-469f-88f3-0afe4ff6f6e3",
+      "name": "Public API Request",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://gateway-dmz.optum.com/api/pdr/pes/professionals/v10.0/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/xml"
+            },
+            {
+              "name": "optum-cid-ext"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "start",
+              "value": "0"
+            },
+            {
+              "name": "count",
+              "value": "1"
+            },
+            {
+              "name": "active-ind",
+              "value": "Active"
+            },
+            {
+              "name": "uhpd-ind",
+              "value": "No"
+            },
+            {
+              "name": "attribute-set",
+              "value": "detail_0006"
+            },
+            {
+              "name": "app-nm",
+              "value": "PAAN"
+            },
+            {
+              "name": "adr-typ-cd",
+              "value": "COMBINATION, BILLING,PLACE OF SERVICE"
+            },
+            {
+              "name": "npi-id",
+              "value": "={{ $('NPI Extract').item.json.code }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        20,
+        -60
+      ],
+      "id": "18124ef8-7ae4-48de-b4e6-0faab9b6dd5b",
+      "name": "Internal API Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "NPI Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML": {
+      "main": [
+        [
+          {
+            "node": "Field Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Field Extract": {
+      "main": [
+        [
+          {
+            "node": "Compare Datasets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare Datasets": {
+      "main": [
+        [],
+        [],
+        [
+          {
+            "node": "Similarity Checks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NPI Extract": {
+      "main": [
+        [
+          {
+            "node": "OAuth Token Gen",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Public API Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trim": {
+      "main": [
+        [
+          {
+            "node": "Compare Datasets",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Reformat": {
+      "main": [
+        [
+          {
+            "node": "Trim",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Same Loc": {
+      "main": [
+        [
+          {
+            "node": "Name Branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loc Extract": {
+      "main": [
+        [
+          {
+            "node": "Loc Cosine Similarity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loc Cosine Similarity": {
+      "main": [
+        [
+          {
+            "node": "Loc Reformat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loc Reformat": {
+      "main": [
+        [
+          {
+            "node": "Name Branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Name Branch": {
+      "main": [
+        [
+          {
+            "node": "Same Name",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Name Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loc Branch": {
+      "main": [
+        [
+          {
+            "node": "Same Loc",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loc Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Same Name": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Name Extract": {
+      "main": [
+        [
+          {
+            "node": "Name Cosine Similarity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Name Cosine Similarity": {
+      "main": [
+        [
+          {
+            "node": "Name Reformat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Name Reformat": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Output": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Vertex Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Similarity Checks": {
+      "main": [
+        [
+          {
+            "node": "Loc Branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OAuth Token Gen": {
+      "main": [
+        [
+          {
+            "node": "Internal API Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Public API Request": {
+      "main": [
+        [
+          {
+            "node": "Reformat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Internal API Request": {
+      "main": [
+        [
+          {
+            "node": "XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1d7857ca-9241-4328-a4de-c02d3aab175e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4ed9d99396d1d31f747faab631041923ec0d3957a4c78e39d60232884ce85651"
+  },
+  "id": "csX1clLg1SkBiZVt",
+  "tags": []
+}
