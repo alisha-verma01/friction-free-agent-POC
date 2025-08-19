@@ -1,0 +1,318 @@
+{
+  "name": "CMS/POS Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -560,
+        208
+      ],
+      "id": "e6f7f61b-a7e0-4b76-b9ed-02fb55db3254",
+      "name": "When chat message received",
+      "webhookId": "2d28f2d2-740d-407f-9929-6c3d7a122982"
+    },
+    {
+      "parameters": {
+        "url": "https://www.cms.gov/medicare/medicare-fee-for-service-payment/physicianfeesched/downloads/website-pos-database.pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -128,
+        -96
+      ],
+      "id": "90f003e7-2b59-4ae1-a190-d6a446da80b2",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        544,
+        336
+      ],
+      "id": "e62317cc-cfae-4d22-b8c5-d9e4e71bf372",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "projectId": {
+          "__rl": true,
+          "value": "cwsfznpj-d5u1-1pyn-k0gn-vmclp8",
+          "mode": "list",
+          "cachedResultName": "dce-prod-pool-1752093519895"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleVertex",
+      "typeVersion": 1,
+      "position": [
+        320,
+        128
+      ],
+      "id": "6caadcbb-b099-4825-8feb-2b7a5f959b41",
+      "name": "Embeddings Google Vertex",
+      "credentials": {
+        "googleApi": {
+          "id": "X0VEvA9IESLvTsFc",
+          "name": "Google Service Account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -96
+      ],
+      "id": "9c521633-9ea0-461d-a1de-01e9d2e3baf8",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "projectId": {
+          "__rl": true,
+          "value": "cwsfznpj-d5u1-1pyn-k0gn-vmclp8",
+          "mode": "list",
+          "cachedResultName": "dce-prod-pool-1752093519895"
+        },
+        "modelName": "gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleVertex",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        432
+      ],
+      "id": "ccfa7b5e-9d8a-4cd8-bfc9-b95d5553c9a5",
+      "name": "Google Vertex Chat Model",
+      "credentials": {
+        "googleApi": {
+          "id": "X0VEvA9IESLvTsFc",
+          "name": "Google Service Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "cms_histories"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -208,
+        432
+      ],
+      "id": "4bc3e10f-4aff-4154-86c4-b3e01a9ad392",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "bo2bG6CsUHP9mpKt",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Retrieve data relating to CMS codes",
+        "tableName": "cms_vectors",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        432
+      ],
+      "id": "afeedb12-4504-4296-bda2-30818b6da5fd",
+      "name": "Postgres PGVector Store",
+      "credentials": {
+        "postgres": {
+          "id": "bo2bG6CsUHP9mpKt",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an agent that will chat with and answer questions from healthcare providers on CMS/POS codes relating to procedures or prescriptions. You are provided info relating to CMS/POS codes and their procedures within the knowledge_base."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        208
+      ],
+      "id": "7dd1bafc-851c-4f82-a548-7a1acfb80066",
+      "name": "CMS/POS Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": "cms_vectors",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.2,
+      "position": [
+        336,
+        -96
+      ],
+      "id": "496c9b4a-d10b-40f3-845d-59bac7ed2485",
+      "name": "PGVector CMS/POS Storing",
+      "credentials": {
+        "postgres": {
+          "id": "bo2bG6CsUHP9mpKt",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        128
+      ],
+      "id": "735720f4-3290-48f4-a645-7624b04c834e",
+      "name": "CMS/POS Loader"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "CMS/POS Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "PGVector CMS/POS Storing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "CMS/POS Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Vertex": {
+      "ai_embedding": [
+        [
+          {
+            "node": "PGVector CMS/POS Storing",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Postgres PGVector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Vertex Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "CMS/POS Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "CMS/POS Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres PGVector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "CMS/POS Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CMS/POS Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "PGVector CMS/POS Storing",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ecb7c678-5bd1-4508-a800-1a9276cb8977",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a8ad73322518f26e3e3485cb577e56b2b0ce02e6d6dd930e5c5a7bba43601e5f"
+  },
+  "id": "2NJ5Av2DjBOCsNAA",
+  "tags": []
+}
