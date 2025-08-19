@@ -1,0 +1,21 @@
+services:
+n8n:
+image: docker-hub.repo1.uhc.com/n8nio/n8n
+container_name: n8n
+ports:
+- "5678:5678"
+environment:
+- N8N_RUNNERS_ENABLED=true
+volumes:
+- ./data/n8n:/home/node/.n8n
+pgvector:
+image: docker.repo1.uhc.com/pgvector/pgvector:pg17
+platform: linux/amd64
+container_name: pgvector
+ports:
+- "5432:5432"
+environment:
+POSTGRES_PASSWORD: password
+POSTGRES_USER: postgres
+volumes:
+- ./data/pg:/var/lib/postgresql/data
