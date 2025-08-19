@@ -1,0 +1,170 @@
+{
+  "name": "CPT Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -432,
+        -208
+      ],
+      "id": "aab63dc2-2672-4af8-949e-9509b769616f",
+      "name": "When chat message received",
+      "webhookId": "8aeea979-e2dd-448a-acb7-a3727c7452a7"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an assistant that makes requests to an CPT API. You will receive CPT codes and you are to make the request and return the information, especially any info relating to the prior authorization as well as the type of procedure. There may also be UHC Gold Card information returned, which means for that procedure, the provider does not need to get prior authorization if they qualify for the UHC Gold Card program."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        -208
+      ],
+      "id": "3d503d6c-f10f-4299-b1d0-75343d55b1d3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "projectId": {
+          "__rl": true,
+          "value": "tmzoixag-xk44-0mqf-sici-xtj9bt",
+          "mode": "list",
+          "cachedResultName": "dce-prod-pool-1752780870229"
+        },
+        "modelName": "gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleVertex",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        16
+      ],
+      "id": "968b1c8b-9015-485d-879d-ad65d0726ddf",
+      "name": "Google Vertex Chat Model",
+      "credentials": {
+        "googleApi": {
+          "id": "X0VEvA9IESLvTsFc",
+          "name": "Google Service Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "n8n_cpt_histories"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        16
+      ],
+      "id": "4af3c7d1-1dd4-454e-a5e9-c9359a01314b",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "bo2bG6CsUHP9mpKt",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Makes an HTTP request to a local CPT database and returns the response data",
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"policyIssueState\": \"{{ $fromAI('parameters0_Value', `The state the policy is issued for, as an abbreviation (ex. MN for Minnesota)`, 'string') }}\",\n \"procedureCode\": {{ $fromAI('parameters1_Value', 'Send only a JSON array of CPT codes as strings, like [\"12345\", \"54321\"]', 'string') }}\n}",
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        48,
+        16
+      ],
+      "id": "815f7d5b-6272-4a38-b36e-ebd6529ef735",
+      "name": "CPT API"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Vertex Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CPT API": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7b6fd639-a55d-4b06-8493-97a0f44f946b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a8ad73322518f26e3e3485cb577e56b2b0ce02e6d6dd930e5c5a7bba43601e5f"
+  },
+  "id": "CCzuI9WeIHKx6jUg",
+  "tags": []
+}
