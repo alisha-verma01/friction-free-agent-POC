@@ -1,149 +1,73 @@
-FrictionFreeAgent 🚀
+# FrictionFreeAgent — Agentic AI to Reduce Operational Friction in Healthcare
 
-Agentic AI to Reduce Operational Friction in Healthcare
+> Public showcase of a summer internship project that uses **agentic AI**, **RAG**, and **workflow automation** to keep provider operations moving when portals are slow or unavailable.  
+> Built with **Google Gemini (Vertex AI)**, **n8n**, **Postgres + pgvector**, and a **FastAPI** microservice.
 
-📌 Overview
+---
 
-FrictionFreeAgent is an agentic AI proof-of-concept designed during a summer internship project to improve operational efficiency in healthcare provider portals. When UnitedHealthcare’s Prior Authorization and Notification (PAAN) application faces downtime, errors, or delays, providers experience friction that leads to increased call volumes, claim denials, compliance risks, and diminished user trust
-.
+### Table of Contents
+- [Why](#why)
+- [What It Does](#what-it-does)
+- [System Architecture](#system-architecture)
+- [Key Components](#key-components)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [RAG & Accuracy Scoring](#rag--accuracy-scoring)
+- [Security & Compliance Readiness](#security--compliance-readiness)
+- [Roadmap](#roadmap)
+- [Screenshots / Demos](#screenshots--demos)
+- [Team](#team)
+- [License](#license)
 
-Our solution leverages agentic AI, RAG pipelines, and workflow automation to proactively minimize this friction by providing reliable, accurate, and real-time support.
+---
 
-⚡ Problem Statement
+### Why
 
-Healthcare provider portals play a critical role in:
+Provider portals (e.g., **PAAN — Prior Authorization and Notification**) are mission-critical for cost control, compliance, patient safety, and operational efficiency. When outages, latency, or data mismatches occur, clinicians and staff face delays, denials, and frustration:contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}.  
 
-Cost control – preventing unnecessary or expensive treatments.
+**FrictionFreeAgent** addresses this by **automating lookups**, **unifying data across sources**, and **surfacing consistent answers via a chat UI**, even when underlying systems are degraded:contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}.
 
-Regulatory compliance – ensuring procedures align with guidelines.
+---
 
-Patient safety – validating clinical appropriateness.
+### What It Does
 
-Operational efficiency – reducing downstream costs
-.
+**FrictionFreeAgent** is a modular, multi-agent system:
 
-However, service outages, manual provider lookups, and mismatched data create inefficiencies:
+- **Prior Authorization Assistant**  
+  Determines whether **PA** is required for a CPT/procedure code and adds state/POS context:contentReference[oaicite:4]{index=4}:contentReference[oaicite:5]{index=5}.
 
-Delayed prior authorizations.
+- **Compliance Checker (POS)**  
+  Cross-checks **Place of Service** against internal UHC policy and public **CMS** sources to flag discrepancies:contentReference[oaicite:6]{index=6}.
 
-Incorrect billing/coding → claim denials.
+- **Provider Search Agent (NPI)**  
+  Aggregates provider details from **internal** and **public** APIs, returns a single structured summary, and assigns an **accuracy score** by comparing sources:contentReference[oaicite:7]{index=7}:contentReference[oaicite:8]{index=8}.
 
-Frustrated providers and overwhelmed support teams.
+**Why this design?**  
+- Automates and validates lookups to reduce manual error and latency:contentReference[oaicite:9]{index=9}  
+- Unifies structured & unstructured data (APIs, PDFs, databases) for consistency:contentReference[oaicite:10]{index=10}  
+- Conversational UX replaces brittle form flows and speeds task completion:contentReference[oaicite:11]{index=11}  
 
-Compliance risks from outdated information
-.
+---
 
-💡 Solution: FrictionFreeAgent
+### System Architecture
 
-We designed FrictionFreeAgent, a modular multi-agent AI system, to:
-
-Automate and validate provider lookups across multiple sources.
-
-Provide unified, consistent data from structured (APIs, databases) and unstructured (PDFs, documents) inputs.
-
-Eliminate errors and reduce manual dependency.
-
-Enhance user experience with conversational AI
-.
-
-Key Capabilities
-
-Prior Authorization Assistant
-
-Determines if prior authorization (PA) is required for a given CPT/procedure code.
-
-Provides contextual details by state and service location
-.
-
-Compliance Checker (POS Lookup)
-
-Cross-checks Place of Service (POS) with CMS and UHC guidelines.
-
-Ensures compliance across internal and public sources.
-
-Provider Search Agent
-
-Aggregates provider details from multiple APIs (internal and public).
-
-Scores accuracy by comparing data across streams
-.
-
-🛠️ Tech Stack & Tools
-
-LLMs: Google Gemini models (via Vertex AI) for conversational AI, summarization, and structured outputs
-.
-
-Workflow Automation: n8n
- for orchestrating multi-agent pipelines and API integrations
-.
-
-Vector Storage: Postgres PGVector for embedding and retrieving structured healthcare data (CPT, CMS, POS, NPI)
-.
-
-Custom APIs: FastAPI-based CPT lookup service to ensure accuracy and reduce latency
-.
-
-Data Sources:
-
-Internal Optum/UHC APIs (NPI, CPT, PA rules).
-
-Public APIs (NIH NPI Registry, CMS).
-
-Locally stored data for redundancy and training.
-
-🧩 Architecture
+```mermaid
 flowchart TD
-    A[Provider Input (CPT, NPI, POS)] --> B[Workflow Orchestration - n8n]
-    B --> C1[Custom FastAPI CPT Lookup API]
-    B --> C2[Postgres PGVector Store]
-    B --> C3[Internal + Public APIs]
-    C1 --> D[Gemini Model - Vertex AI]
-    C2 --> D
-    C3 --> D
-    D --> E[AI-Powered Chat UI]
-    E --> F[Unified Response with Accuracy Score]
+    U[User / Provider] -->|CPT, NPI, POS prompts| UI[Chat UI]
+    UI --> N8N[n8n Orchestrator]
 
+    N8N --> FA[FastAPI CPT Lookup]
+    N8N --> VDB[(Postgres + pgvector)]
+    N8N --> APIs[Public + Internal APIs]
+    subgraph External Sources
+      NIH[NIH NPI Registry]
+      CMS[CMS / POS Data]
+    end
+    APIs --> NIH & CMS
 
-Chat-based interface replaces manual form lookups.
+    FA --> LLM[Gemini on Vertex AI]
+    VDB --> LLM
+    APIs --> LLM
 
-AI agents fetch, validate, and summarize provider/authorization info.
-
-Accuracy scoring ensures transparency for providers
-.
-
-📊 Business Impact
-
-Reduced downtime impact – system serves as a reliable backup during outages.
-
-Lower claim denials – improved accuracy in PA and provider info.
-
-Operational efficiency – fewer manual lookups and reduced support team load.
-
-Improved provider experience – proactive notifications, empathetic messaging, and seamless chatbot interactions
-.
-
-🔮 Roadmap & Next Steps
-
-API Access Expansion – integrate dynamic CMS/POS APIs instead of static PDFs
-.
-
-Multi-Agent Autonomy – implement advanced agents:
-
-Outage Notifier Agent
-
-Task Resubmission Agent
-
-Backpressure Agent
-
-Model Training & Feedback Loop – use locally stored provider portal interactions to fine-tune Gemini models for accuracy.
-
-Production Deployment – CI/CD pipelines, UAT testing, monitoring dashboards, and security reviews.
-
-📽️ Demo
-
-👉 [Add link here if you have a hosted demo, Loom recording, or slides]
-
-📜 License
-
-This project was developed as part of a summer internship at Optum (UnitedHealth Group).
-All rights reserved © 2025 Optum, Inc.
+    LLM --> RESP[Unified Structured Response + Accuracy Score]
+    RESP --> UI
