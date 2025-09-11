@@ -1,73 +1,73 @@
-# FrictionFreeAgent — Agentic AI to Reduce Operational Friction in Healthcare
+FrictionFreeAgent — Agentic AI to Reduce Operational Friction in the Provider Portal
 
-> Public showcase of a summer internship project that uses **agentic AI**, **RAG**, and **workflow automation** to keep provider operations moving when portals are slow or unavailable.  
-> Built with **Google Gemini (Vertex AI)**, **n8n**, **Postgres + pgvector**, and a **FastAPI** microservice.
+An internship project that builds agentic AI workflows to keep provider operations moving—even when core services are slow or down. The system automates CPT prior-authorization checks, POS/CMS compliance lookups, and NPI provider summaries, with vector-backed memory, a custom CPT API for accuracy and low latency, and n8n-orchestrated workflows. 
 
----
+SharkTank1
 
-### Table of Contents
-- [Why](#why)
-- [What It Does](#what-it-does)
-- [System Architecture](#system-architecture)
-- [Key Components](#key-components)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
-- [RAG & Accuracy Scoring](#rag--accuracy-scoring)
-- [Security & Compliance Readiness](#security--compliance-readiness)
-- [Roadmap](#roadmap)
-- [Screenshots / Demos](#screenshots--demos)
-- [Team](#team)
-- [License](#license)
+Table of Contents
 
----
+Why this matters
 
-### Why
+What we built
 
-Provider portals (e.g., **PAAN — Prior Authorization and Notification**) are mission-critical for cost control, compliance, patient safety, and operational efficiency. When outages, latency, or data mismatches occur, clinicians and staff face delays, denials, and frustration:contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}.  
+System architecture
 
-**FrictionFreeAgent** addresses this by **automating lookups**, **unifying data across sources**, and **surfacing consistent answers via a chat UI**, even when underlying systems are degraded:contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}.
+Key components
 
----
+Quick start
 
-### What It Does
+Detailed setup
 
-**FrictionFreeAgent** is a modular, multi-agent system:
+1) Core services: Postgres (pgvector) + n8n
 
-- **Prior Authorization Assistant**  
-  Determines whether **PA** is required for a CPT/procedure code and adds state/POS context:contentReference[oaicite:4]{index=4}:contentReference[oaicite:5]{index=5}.
+2) Google Vertex AI (Gemini) setup
 
-- **Compliance Checker (POS)**  
-  Cross-checks **Place of Service** against internal UHC policy and public **CMS** sources to flag discrepancies:contentReference[oaicite:6]{index=6}.
+3) Custom CPT Lookup API (Go)
 
-- **Provider Search Agent (NPI)**  
-  Aggregates provider details from **internal** and **public** APIs, returns a single structured summary, and assigns an **accuracy score** by comparing sources:contentReference[oaicite:7]{index=7}:contentReference[oaicite:8]{index=8}.
+4) Load n8n workflows
 
-**Why this design?**  
-- Automates and validates lookups to reduce manual error and latency:contentReference[oaicite:9]{index=9}  
-- Unifies structured & unstructured data (APIs, PDFs, databases) for consistency:contentReference[oaicite:10]{index=10}  
-- Conversational UX replaces brittle form flows and speeds task completion:contentReference[oaicite:11]{index=11}  
+Using the agents
 
----
+Caching, RAG, and fallbacks
 
-### System Architecture
+Security & compliance
 
-```mermaid
-flowchart TD
-    U[User / Provider] -->|CPT, NPI, POS prompts| UI[Chat UI]
-    UI --> N8N[n8n Orchestrator]
+Project structure
 
-    N8N --> FA[FastAPI CPT Lookup]
-    N8N --> VDB[(Postgres + pgvector)]
-    N8N --> APIs[Public + Internal APIs]
-    subgraph External Sources
-      NIH[NIH NPI Registry]
-      CMS[CMS / POS Data]
-    end
-    APIs --> NIH & CMS
+Roadmap
 
-    FA --> LLM[Gemini on Vertex AI]
-    VDB --> LLM
-    APIs --> LLM
+Troubleshooting
 
-    LLM --> RESP[Unified Structured Response + Accuracy Score]
-    RESP --> UI
+Contributors
+
+License
+
+Why this matters
+
+Provider teams depend on the Portal to check prior authorization (PA), place of service (POS) rules, and provider details. Outages, slow responses, or manual multi-step lookups create downstream issues: delayed approvals, coding errors/denials, frustrated users, and compliance risk. Our project targets this friction by automating lookups, unifying data across sources, and delivering a single, reliable answer—even during partial outages. 
+
+SharkTank3
+
+ 
+
+SharkTank1
+
+What we built
+
+FrictionFreeAgent is a set of three agentic bots orchestrated by n8n:
+
+Prior Authorization Assistant – Given CPT code(s) and state, determines if PA is required and injects contextual policy signals (e.g., site of service).
+
+Compliance Checker (POS/CMS) – Verifies POS rules and aligns with CMS/UHC policy artifacts.
+
+Provider Search – Summarizes a provider profile from NPI(s), aggregating across internal/external streams and surfacing an accuracy score for name/location alignment. 
+
+SharkTank3
+
+ 
+
+SharkTank2
+
+To maximize accuracy and reduce latency, we added a custom CPT Lookup API (Go) and pair it with pgvector memory + Vertex AI (Gemini) for reasoning, summarization, and RAG. 
+
+SharkTank2
